@@ -1,0 +1,55 @@
+# Copy this file to cluster.toml at the repo root (or pass its path as the
+# first argument to cluster-ctl, or set $CLUSTER_CTL_CONFIG) and fill in
+# your own hosts. cluster.toml is gitignored, same as the old inventory.ini
+# and config.yaml it replaces.
+#
+# Node roles:
+#   k3s_master  - HA control-plane node (embedded etcd). The FIRST
+#                 k3s_master in this file is used as the `--cluster-init`
+#                 bootstrap node and as the join endpoint of last resort.
+#   gpu_node    - k3s agent with the NVIDIA container runtime.
+# A node can hold both roles, or neither (e.g. a host you only use for
+# `make`-era ad hoc access and want listed for the status bar).
+
+[settings]
+ssh_port = 22
+k3s_channel = "stable"
+flannel_iface = "tailscale0"
+# Path to a kubeconfig, resolved relative to this file. Only used by the
+# "Verify Flannel" step (shells out to `kubectl`).
+kubeconfig = "config.yaml"
+
+# Rancher install settings (used by the "Install / upgrade Rancher" step).
+rancher_hostname = "rancher.example.ts.net"
+rancher_replicas = 3
+rancher_tls_source = "rancher"
+cert_manager_chart_version = ""
+rancher_chart_version = ""
+
+[[node]]
+name = "master-1"
+address = "100.100.100.10"
+hostname = "master-1.example.ts.net"
+user = "your-user"
+roles = ["k3s_master"]
+
+[[node]]
+name = "master-2"
+address = "100.100.100.11"
+hostname = "master-2.example.ts.net"
+user = "your-user"
+roles = ["k3s_master"]
+
+[[node]]
+name = "master-3"
+address = "100.100.100.12"
+hostname = "master-3.example.ts.net"
+user = "your-user"
+roles = ["k3s_master"]
+
+[[node]]
+name = "gpu-1"
+address = "100.100.100.20"
+hostname = "gpu-1.example.ts.net"
+user = "your-user"
+roles = ["gpu_node"]

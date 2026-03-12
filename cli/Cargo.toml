@@ -1,0 +1,22 @@
+[package]
+name = "cluster-ctl"
+version = "0.1.0"
+edition = "2021"
+description = "Terminal UI for deploying and operating the portal k3s/Tailscale cluster."
+publish = false
+
+[[bin]]
+name = "cluster-ctl"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+bytes = "1"
+crossterm = { version = "0.29", features = ["event-stream"] }
+dirs = "5"
+futures = "0.3"
+ratatui = "0.30"
+russh = "0.62"
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "io-util", "time", "sync", "process", "fs"] }
+toml = "0.8"

@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-bg: #05070a;
+  --color-panel: #0b0f14;
+  --color-panel-2: #10161d;
+  --color-line: #1c2530;
+  --color-text: #d7dee5;
+  --color-muted: #7c8b9a;
+  --color-accent: #4ee0a4;
+  --color-accent-2: #5fb3ff;
+  --color-warn: #ff6b6b;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(79, 224, 164, 0.12), transparent),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: auto, 48px 48px, 48px 48px;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.text-glow {
+  text-shadow: 0 0 24px rgba(79, 224, 164, 0.35);
+}
+
+.panel {
+  background-color: var(--color-panel);
+  border: 1px solid var(--color-line);
+}
+
+.crt-canvas {
+  filter: drop-shadow(0 30px 60px rgba(0,0,0,0.6));
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.cursor-blink {
+  animation: blink 1s steps(1) infinite;
+}
+
+.dot-idle { background-color: var(--color-muted); }
+.dot-ok { background-color: var(--color-accent); box-shadow: 0 0 8px rgba(79, 224, 164, 0.8); }
+.dot-warn { background-color: var(--color-warn); box-shadow: 0 0 8px rgba(255, 107, 107, 0.8); }
+
+::selection {
+  background: rgba(79, 224, 164, 0.35);
+  color: white;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--color-line);
+  border-radius: 4px;
+}

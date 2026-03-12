@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>portal — HA k3s cluster deployment</title>
+  <meta name="description" content="portal automates a high-availability k3s cluster over Tailscale/Flannel with a Rust terminal UI, cluster-ctl. Explore the install process." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#9679;</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script type="module" crossorigin src="./src/main.js"></script>
+</head>
+<body class="antialiased">
+
+  <!-- Nav -->
+  <header class="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-[#05070a]/80 backdrop-blur">
+    <div class="mx-auto max-w-6xl px-6 h-14 flex items-center justify-between">
+      <a href="#top" class="font-mono text-sm font-semibold tracking-tight text-white flex items-center gap-2">
+        <span class="inline-block h-2 w-2 rounded-full dot-ok"></span>
+        portal
+      </a>
+      <nav class="hidden md:flex items-center gap-7 text-sm text-[var(--color-muted)]">
+        <a href="#architecture" class="hover:text-white transition-colors">Architecture</a>
+        <a href="#terminal" class="hover:text-white transition-colors">cluster-ctl</a>
+        <a href="#steps" class="hover:text-white transition-colors">Install steps</a>
+        <a href="#quickstart" class="hover:text-white transition-colors">Quickstart</a>
+      </nav>
+      <a href="https://github.com/Aisuko/portal" target="_blank" rel="noopener"
+         class="text-sm font-medium text-white/90 border border-white/15 rounded-md px-3 py-1.5 hover:bg-white/5 transition-colors">
+        GitHub ↗
+      </a>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- Hero -->
+    <section class="relative overflow-hidden pt-40 pb-24 px-6">
+      <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 -z-10 flex justify-center">
+        <div class="h-[420px] w-[720px] rounded-full bg-[var(--color-accent)]/15 blur-[120px]"></div>
+      </div>
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="font-mono text-xs uppercase tracking-[0.25em] text-[var(--color-accent)] mb-4">
+          deployment artifact · arXiv:2603.23942
+        </p>
+        <h1 class="text-4xl sm:text-6xl font-bold tracking-tight text-white leading-[1.1]">
+          A high-availability<br />
+          <span class="text-glow text-[var(--color-accent)]">k3s cluster</span>, driven<br />
+          from one terminal.
+        </h1>
+        <p class="mt-6 text-lg text-[var(--color-muted)] mx-auto max-w-xl">
+          <span class="font-mono text-white">portal</span> packages the automation and
+          operational docs behind the computing resources management layer in the paper —
+          HA k3s over embedded etcd, GPU worker nodes, Tailscale + Flannel networking, and Rancher —
+          operated entirely through <span class="font-mono text-white">cluster-ctl</span>,
+          a Rust TUI that talks to your nodes over plain SSH.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a href="#terminal" class="inline-flex items-center gap-2 rounded-md bg-[var(--color-accent)] text-black font-medium text-sm px-4 py-2.5 hover:brightness-110 transition">
+            Watch it run
+          </a>
+          <a href="#quickstart" class="inline-flex items-center gap-2 rounded-md border border-white/15 text-white text-sm px-4 py-2.5 hover:bg-white/5 transition">
+            Quickstart
+          </a>
+        </div>
+
+        <div class="mt-10 mx-auto max-w-md panel rounded-lg overflow-hidden text-left">
+          <div class="flex items-center gap-2 px-4 py-2 border-b border-[var(--color-line)] bg-[var(--color-panel-2)]">
+            <span class="h-2 w-2 rounded-full bg-[#ff5f57]"></span>
+            <span class="h-2 w-2 rounded-full bg-[#febc2e]"></span>
+            <span class="h-2 w-2 rounded-full bg-[#28c840]"></span>
+            <span class="ml-1 font-mono text-[11px] text-[var(--color-muted)]">shell</span>
+          </div>
+          <pre class="px-4 py-3 text-[13px] font-mono leading-6"><code><span class="text-[var(--color-muted)]">$</span> cd cli && <span class="text-[var(--color-accent-2)]">cargo</span> run --release</code></pre>
+        </div>
+
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-mono text-[var(--color-muted)]">
+          <span>MIT licensed</span>
+          <span class="text-white/15">/</span>
+          <span>no Ansible, no Python runtime</span>
+          <span class="text-white/15">/</span>
+          <span>SSH key + TOFU host-key pinning</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture -->
+    <section id="architecture" class="px-6 py-24 border-t border-white/5 scroll-mt-14">
+      <div class="mx-auto max-w-6xl">
+        <h2 class="font-mono text-xs uppercase tracking-[0.25em] text-[var(--color-accent)] mb-3">Topology</h2>
+        <h3 class="text-3xl font-bold text-white tracking-tight max-w-2xl">What <span class="font-mono">portal</span> actually stands up</h3>
+        <div class="mt-12 grid md:grid-cols-3 gap-5">
+
+          <div class="panel rounded-lg p-6">
+            <div class="text-[var(--color-accent)] font-mono text-xs mb-3">01 · control plane</div>
+            <h4 class="text-white font-semibold mb-2">Three HA masters</h4>
+            <p class="text-sm text-[var(--color-muted)] leading-relaxed">
+              k3s control-plane nodes with embedded etcd. The first
+              <span class="font-mono text-white">k3s_master</span> in
+              <span class="font-mono text-white">cluster.toml</span> bootstraps the cluster with
+              <span class="font-mono">--cluster-init</span> and doubles as the join endpoint of last resort.
+            </p>
+          </div>
+
+          <div class="panel rounded-lg p-6">
+            <div class="text-[var(--color-accent)] font-mono text-xs mb-3">02 · workers</div>
+            <h4 class="text-white font-semibold mb-2">GPU agent nodes</h4>
+            <p class="text-sm text-[var(--color-muted)] leading-relaxed">
+              Joined as k3s agents, then configured with the NVIDIA container runtime so
+              GPU workloads can be scheduled directly against the cluster.
+            </p>
+          </div>
+
+          <div class="panel rounded-lg p-6">
+            <div class="text-[var(--color-accent)] font-mono text-xs mb-3">03 · networking</div>
+            <h4 class="text-white font-semibold mb-2">Tailscale + Flannel</h4>
+            <p class="text-sm text-[var(--color-muted)] leading-relaxed">
+              Tailscale is the host-to-host mesh; Flannel rides on top of it for pod networking.
+              A dedicated recovery step re-establishes <span class="font-mono">flannel.1</span>
+              when a joined node comes up without it.
+            </p>
+          </div>
+
+          <div class="panel rounded-lg p-6">
+            <div class="text-[var(--color-accent)] font-mono text-xs mb-3">04 · management</div>
+            <h4 class="text-white font-semibold mb-2">Rancher</h4>
+            <p class="text-sm text-[var(--color-muted)] leading-relaxed">
+              Installed on the control-plane nodes via cert-manager + Helm, with the hostname,
+              replica count and TLS source read from <span class="font-mono text-white">[settings]</span>.
+            </p>
+          </div>
+
+          <div class="panel rounded-lg p-6">
+            <div class="text-[var(--color-accent)] font-mono text-xs mb-3">05 · operator</div>
+            <h4 class="text-white font-semibold mb-2">cluster-ctl (Rust)</h4>
+            <p class="text-sm text-[var(--color-muted)] leading-relaxed">
+              A single static binary. SSH directly to each node — key auth first, password
+              fallback second, sudo password piped over stdin, never on the command line.
+            </p>
+          </div>
+
+          <div class="panel rounded-lg p-6">
+            <div class="text-[var(--color-accent)] font-mono text-xs mb-3">06 · boundary</div>
+            <h4 class="text-white font-semibold mb-2">Deployment only</h4>
+            <p class="text-sm text-[var(--color-muted)] leading-relaxed">
+              This repo documents and automates deployment. It does not contain the
+              service-workbench application or the paper's experiment code.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Install steps -->
+    <section id="steps" class="px-6 py-24 border-t border-white/5 scroll-mt-14">
+      <div class="mx-auto max-w-6xl">
+        <h2 class="font-mono text-xs uppercase tracking-[0.25em] text-[var(--color-accent)] mb-3">Menu</h2>
+        <h3 class="text-3xl font-bold text-white tracking-tight max-w-2xl">Every step cluster-ctl can run</h3>
+        <p class="mt-4 text-[var(--color-muted)] max-w-2xl">
+          These are the exact menu entries in the TUI. Click one — the terminal above will
+          replay a realistic log for that step, sourced from what <span class="font-mono text-white">cluster-ctl</span>
+          actually prints.
+        </p>
+
+        <div id="step-list" class="mt-10 grid sm:grid-cols-2 gap-2.5 font-mono text-sm">
+          <!-- populated by main.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Terminal -->
+    <section id="terminal" class="px-6 py-24 border-t border-white/5 scroll-mt-14">
+      <div class="mx-auto max-w-6xl">
+        <h2 class="font-mono text-xs uppercase tracking-[0.25em] text-[var(--color-accent)] mb-3">The real thing</h2>
+        <h3 class="text-3xl font-bold text-white tracking-tight max-w-2xl mb-10">
+          Driven by the exact log <span class="font-mono">cluster-ctl</span> prints
+        </h3>
+        <div class="relative rounded-xl panel shadow-2xl overflow-hidden">
+          <div class="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--color-line)] bg-[var(--color-panel-2)]">
+            <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f57]"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-[#febc2e]"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-[#28c840]"></span>
+            <span class="ml-2 font-mono text-[11px] text-[var(--color-muted)]">cluster-ctl — ssh session</span>
+          </div>
+          <canvas id="terminal-canvas" class="block w-full aspect-[4/3] crt-canvas"></canvas>
+        </div>
+        <p class="mt-4 text-sm text-center text-[var(--color-muted)] font-mono">
+          simulated output, rendered live in a WebGL scene — click a step above to drive it
+        </p>
+      </div>
+    </section>
+
+    <!-- Quickstart -->
+    <section id="quickstart" class="px-6 py-24 border-t border-white/5 scroll-mt-14">
+      <div class="mx-auto max-w-6xl grid lg:grid-cols-2 gap-12">
+        <div>
+          <h2 class="font-mono text-xs uppercase tracking-[0.25em] text-[var(--color-accent)] mb-3">Local setup</h2>
+          <h3 class="text-3xl font-bold text-white tracking-tight mb-6">Four steps to a running control plane</h3>
+          <ol class="space-y-5 text-sm">
+            <li class="flex gap-4">
+              <span class="font-mono text-[var(--color-accent)] shrink-0">1</span>
+              <span class="text-[var(--color-muted)]">Copy <span class="font-mono text-white">cli/cluster.example.toml</span> to <span class="font-mono text-white">cluster.toml</span> and fill in node names, Tailscale addresses/hostnames, and SSH user.</span>
+            </li>
+            <li class="flex gap-4">
+              <span class="font-mono text-[var(--color-accent)] shrink-0">2</span>
+              <span class="text-[var(--color-muted)]">Drop a working kubeconfig at <span class="font-mono text-white">config.yaml</span> if you want "Verify Flannel" to work — it shells out to <span class="font-mono text-white">kubectl</span>.</span>
+            </li>
+            <li class="flex gap-4">
+              <span class="font-mono text-[var(--color-accent)] shrink-0">3</span>
+              <span class="text-[var(--color-muted)]">Build and run <span class="font-mono text-white">cluster-ctl</span> — it tries your SSH keys first, then falls back to a password entered on the startup screen.</span>
+            </li>
+            <li class="flex gap-4">
+              <span class="font-mono text-[var(--color-accent)] shrink-0">4</span>
+              <span class="text-[var(--color-muted)]">Install <span class="font-mono text-white">kubectl</span> locally if you plan to use "Verify Flannel".</span>
+            </li>
+          </ol>
+        </div>
+
+        <div class="panel rounded-lg overflow-hidden">
+          <div class="px-4 py-2.5 border-b border-[var(--color-line)] bg-[var(--color-panel-2)] font-mono text-[11px] text-[var(--color-muted)]">
+            shell
+          </div>
+          <pre class="p-5 text-[13px] font-mono leading-6 overflow-x-auto scrollbar-thin"><code><span class="text-[var(--color-muted)]"># from the repo root</span>
+cp cli/cluster.example.toml cluster.toml
+<span class="text-[var(--color-muted)]">$EDITOR cluster.toml</span>
+
+cd cli
+<span class="text-[var(--color-accent-2)]">cargo</span> run --release
+
+<span class="text-[var(--color-muted)]"># or point at a config elsewhere</span>
+<span class="text-[var(--color-accent-2)]">cargo</span> run --release -- path/to/cluster.toml
+CLUSTER_CTL_CONFIG=./staging.toml <span class="text-[var(--color-accent-2)]">cargo</span> run --release</code></pre>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="px-6 py-10 border-t border-white/5">
+    <div class="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--color-muted)] font-mono">
+      <span>portal · MIT License</span>
+      <div class="flex items-center gap-5">
+        <a href="https://arxiv.org/abs/2603.23942" target="_blank" rel="noopener" class="hover:text-white transition-colors">arXiv:2603.23942</a>
+        <a href="https://github.com/Aisuko/portal" target="_blank" rel="noopener" class="hover:text-white transition-colors">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
